@@ -4,6 +4,12 @@
 #define bpmControl A2
 #define button1 2
 
+const int pulseA = 12;
+const int pulseB = 13;
+const int pushSW = 2;
+volatile int lastEncoder = 0;
+volatile long encoderValue = 0;
+
 SSD1306    display(0x3c, 4, 5, GEOMETRY_128_32);
 
 int first = 1319; //메트로놈 첫박 소리 높이
@@ -17,6 +23,27 @@ int buttonstate1 = 0;
 int prevstate1 = 0;
 int rhythmcount = 1; //박자 조절 스위치
 
+IRAM_ATTR void handleRotary() {
+  int MSB = digitalRead(pulseA);
+  int LSB = digitalRead(pulseB);
+
+  int encoded = (MSB << 1) | LSB;
+  int sum = (lastEncoder << 2) | encoded;
+  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) encoderValue++;
+  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) encoderValue--;
+  lastEncoder = encoded;
+  if(encoderValue > 255){
+    encoderValue = 255;
+  }else if(encoderValue < 0){
+    encoderValue = 0;
+  }
+}
+
+IRAM_ATTR void buttonClicked() {
+  Serial.println("pushed");
+}
+
+
 void setup() {
     pinMode(speakerpin, OUTPUT);
     pinMode(bpmControl, INPUT);
@@ -28,6 +55,13 @@ void setup() {
     display.setFont(ArialMT_Plain_16);
     display.drawString(10, 10, "Hello World");
     display.display();
+
+    pinMode(pushSW, INPUT_PULLUP);
+    pinMode(pulseA, INPUT_PULLUP);
+    pinMode(pulseB, INPUT_PULLUP);
+    attachInterrupt(pushSW, buttonClicked, FALLING);
+    attachInterrupt(pulseA, handleRotary, CHANGE);
+    attachInterrupt(pulseB, handleRotary, CHANGE);
 }
 
 void loop() {
@@ -82,6 +116,7 @@ void loop() {
     Serial.print(rhythm);
     Serial.print("/4,  bpm : ");
     Serial.println(bpm);
+    Serial.println(encoderValue);
     delay(100);
 
 } 
