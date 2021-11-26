@@ -1,5 +1,10 @@
 //메카솔루션 메트로놈 프로젝트//
 #include <LiquidCrystal.h>
+#include <Arduino.h>
+#include <SSD1306.h>
+
+SSD1306    display(0x3c, 4, 5, GEOMETRY_128_32);
+
 LiquidCrystal lcd(9,8,4,5,6,7);
 const int sw1 = 13;//박자수 변동
 const int sw2 = 12;//박자속도 감소
@@ -321,3 +326,19 @@ void pattern4_2()
   } break;
  }
 }//4분의 2박자 패턴표시
+
+void setup() {
+  Serial.begin(115200);
+  display.init();
+  display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_16);
+  display.drawString(10, 10, "Hello World");
+  display.display();
+}
+
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  Serial.println("a");
+  delay(500);
+}
