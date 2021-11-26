@@ -1,14 +1,13 @@
 #include <Arduino.h>
 #include <SSD1306.h>
 #define speakerpin 5
-#define bpmControl A2
-#define button1 2
+#define bpmControl_MSB 12
+#define bpmControl_LSB 13
+#define buttonSW 2
 
-const int pulseA = 12;
-const int pulseB = 13;
-const int pushSW = 2;
-volatile int lastEncoder = 0;
-volatile long encoderValue = 0;
+// const int pulseA = 12;
+// const int pulseB = 13;
+// const int pushSW = 2;
 
 SSD1306    display(0x3c, 4, 5, GEOMETRY_128_32);
 
@@ -22,10 +21,12 @@ int rhythm = 4; //박자 계산(ex 4분의 4박자, 4분의 3박자...)
 int buttonstate1 = 0;
 int prevstate1 = 0;
 int rhythmcount = 1; //박자 조절 스위치
+volatile int lastEncoder = 0;
+volatile long encoderValue = 0;
 
 IRAM_ATTR void handleRotary() {
-  int MSB = digitalRead(pulseA);
-  int LSB = digitalRead(pulseB);
+  int MSB = digitalRead(bpmControl_MSB);
+  int LSB = digitalRead(bpmControl_LSB);
 
   int encoded = (MSB << 1) | LSB;
   int sum = (lastEncoder << 2) | encoded;
@@ -45,23 +46,24 @@ IRAM_ATTR void buttonClicked() {
 
 
 void setup() {
-    pinMode(speakerpin, OUTPUT);
+  
+  /*  pinMode(speakerpin, OUTPUT);
     pinMode(bpmControl, INPUT);
-    pinMode(button1, INPUT); //입력, 출력 설정
+    pinMode(button1, INPUT); //입력, 출력 설정 */
 
     Serial.begin(115200);
     display.init();
     display.flipScreenVertically();
     display.setFont(ArialMT_Plain_16);
-    display.drawString(10, 10, "Hello World");
+    display.drawString(10, 10, "TEAM3");
     display.display();
 
-    pinMode(pushSW, INPUT_PULLUP);
-    pinMode(pulseA, INPUT_PULLUP);
-    pinMode(pulseB, INPUT_PULLUP);
-    attachInterrupt(pushSW, buttonClicked, FALLING);
-    attachInterrupt(pulseA, handleRotary, CHANGE);
-    attachInterrupt(pulseB, handleRotary, CHANGE);
+    pinMode(buttonSW, INPUT_PULLUP);
+    pinMode(bpmControl_MSB, INPUT_PULLUP);
+    pinMode(bpmControl_LSB, INPUT_PULLUP);
+    attachInterrupt(buttonSW, buttonClicked, FALLING);
+    attachInterrupt(bpmControl_MSB, handleRotary, CHANGE);
+    attachInterrupt(bpmControl_LSB, handleRotary, CHANGE);
 }
 
 void loop() {
@@ -69,7 +71,7 @@ void loop() {
     bpm = map(bpm, 0, 1023, 60, 180); //0부터 1023까지의 가변저항 값을 60부터 180으로 조절
     bpm1 = 60/bpm;
     bpm2 = bpm1*850; //가변저항 값에 따라 메트로놈 속도 변환
-    buttonstate1 = digitalRead(button1); //버튼 값 저장
+    buttonstate1 = digitalRead(buttonSW); //버튼 값 저장
 
     if (count%rhythm == 1) { //첫 박마다 소리 출력
         tone(speakerpin, first, 150);
