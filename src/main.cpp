@@ -1,344 +1,87 @@
-//메카솔루션 메트로놈 프로젝트//
-#include <LiquidCrystal.h>
 #include <Arduino.h>
 #include <SSD1306.h>
 
 SSD1306    display(0x3c, 4, 5, GEOMETRY_128_32);
 
-LiquidCrystal lcd(9,8,4,5,6,7);
-const int sw1 = 13;//박자수 변동
-const int sw2 = 12;//박자속도 감소
-const int sw3 = 11;//박자속도 증가
-const int buzzer = 10;
-//핀번호를 바꿀 때, 다른 핀들과 번호가 겹치지 않도록 주의바랍니다!(윗부분만 수정)//
+ #define speakerpin 5
+ #define bpmControl A2
+ #define button1 2
+ int first = 1319; //메트로놈 첫박 소리 높이
+ int other = 1047; //메트로놈 다른 소리 높이
+ float bpm; //가변저항 입력값 저장
+ float bpm1;
+ float bpm2; //가변저항에 따른 박자 속도 계산
+ int count = 1;
+ int rhythm = 4; //박자 계산(ex 4분의 4박자, 4분의 3박자...)
+ int buttonstate1 = 0;
+ int prevstate1 = 0;
+ int rhythmcount = 1; //박자 조절 스위치
 
-byte userFont1[8] = {
-  B00000,
-  B00100,
-  B00100,
-  B00100,
-  B00100,
-  B01100,
-  B01100,
-  B00000 };//4분음표
-byte userFont2[8] = {
-  B00000,
-  B00110,
-  B00100,
-  B00100,
-  B00100,
-  B01100,
-  B01100,
-  B00000 };//8분음표
-byte userFont3[8] = {
-  B00000,
-  B01111,
-  B01001,
-  B01001,
-  B01001,
-  B11011,
-  B11011,
-  B00000 };//8분음표x2 (한박)
-byte userFont4[8] = {
-  B01000,
-  B01100,
-  B01110,
-  B01111,
-  B01110,
-  B01100,
-  B01000,
-  B00000 };//▶
-
-int cnt = 0;
-float tempo_time;
-unsigned int tempo_speed = 80; //LCD에 표기되는 박자표기
-unsigned int tempo_cnt = 0;
-unsigned long timer=750;
-unsigned long timer1;
-void setup()
-{
-  pinMode(sw1,INPUT);
-  pinMode(sw2,INPUT);
-  pinMode(sw3,INPUT);
-  pinMode(buzzer,OUTPUT);
-  
-  lcd.createChar(1,userFont1);
-  lcd.createChar(2,userFont2);
-  lcd.createChar(3,userFont3);
-  lcd.createChar(4,userFont4);
-  lcd.begin(16,2);
-  
-  Serial.begin(9600);
-}
-void loop()
-{
-  int beat = digitalRead(sw1);         //박자수 변동
-  int temp_up = digitalRead(sw3);     //박자속도 증가
-  int temp_down = digitalRead(sw2);  //박자속도 감소
-  
-  lcd.setCursor(0,0);
-  lcd.print("Tempo:");
-  int tempo_speed100 = tempo_speed / 100;
-  int tempo_speed10 = tempo_speed % 100 / 10;
-  int tempo_speed1 = tempo_speed % 10;
-  
-  lcd.setCursor(6,0);
-  lcd.print(tempo_speed100);
-  lcd.setCursor(7,0);
-  lcd.print(tempo_speed10);
-  lcd.setCursor(8,0);
-  lcd.print(tempo_speed1);
-  
-  lcd.setCursor(12,0);  
-  quickness();     //빠르기말 표시
-  
-  if(cnt == 9)
-    cnt = 0;
-  if(cnt % 3 == 2)
-    tempo_time = 60.00 / tempo_speed * 500;//tempo_timequick //LCD표기를 초속도로 나타낸 공식(8분음표 한 박)
-  else
-    tempo_time = 60.00 / tempo_speed * 1000;//LCD표기를 초속도로 나타낸 공식(4분음표)
-  
-  if(millis() - timer1 >= 220)
-  {
-   if(beat == HIGH) // 박자증감표시(음표)
-     cnt = cnt + 1;
-   if(temp_down == HIGH)
-    tempo_speed = tempo_speed - 2; // -2씩 감소
-  if(temp_up == HIGH)
-    tempo_speed = tempo_speed + 3; // +3씩 증가
-    timer1 = millis();
-    
-    beatcheck();   //음표박자표시
-  }//스위치 전용 딜레이
-  int state;  //패턴 박자수
-  if(cnt < 3)
-  {
-    pattern4_4();   //4분의 4박자 패턴표시
-    state = 4;
-    if(cnt == 2)
-      state = 8;
-  }
-  else if(cnt < 6)
-  {
-    pattern4_3();   //4분의 3박자 패턴표시
-    state = 3;
-  }
-  else
-  {
-    pattern4_2();   //4분의 2박자 패턴표시
-    state = 2;
-  }
-  
-  if(millis() - timer >= tempo_time)
-  {
-    timer = millis();
-    
-    if(tempo_cnt%state == state - 1)
-     tone(buzzer,523,100); // 4옥타브 도
-    else
-     tone(buzzer,261,100); // 3옥타브 도
-
-       tempo_cnt = tempo_cnt + 1;
-  }//부저와 박자카운트 전용 딜레이
-  
-}
-//////////박자와 음표표시//////////
-void beatcheck()
-{
-  switch(cnt) {
-/*
-  case 0: {
-    lcd.setCursor(12,0);
-    lcd.print("    "); 
-  } break;
-*/
-  case 0: {
-  lcd.setCursor(14,0);
-  lcd.print("4");
-  lcd.write(1);
-  } break;
-  case 1: {
-  lcd.setCursor(14,0);
-  lcd.print("4");
-  lcd.write(2);
-  } break;
-  case 2: {
-  lcd.setCursor(14,0);
-  lcd.print("4");
-  lcd.write(3);
-  } break;
-  case 3: {
-  lcd.setCursor(14,0);
-  lcd.print("3");
-  lcd.write(1);
-  } break;
-  case 4: {
-  lcd.setCursor(14,0);
-  lcd.print("3");
-  lcd.write(2);
-  } break;
-  case 5: {
-  lcd.setCursor(14,0);
-  lcd.print("3");
-  lcd.write(3);
-  } break;
-  case 6: {
-  lcd.setCursor(14,0);
-  lcd.print("2");
-  lcd.write(1);
-  } break;
-  case 7: {
-  lcd.setCursor(14,0);
-  lcd.print("2");
-  lcd.write(2);
-  } break;
-  case 8: {
-  lcd.setCursor(14,0);
-  lcd.print("2");
-  lcd.write(3);
-  } break;
-  }
-}//음표박자표시
-//////////빠르기말 표시//////////
-void quickness()
-{
-  if(tempo_speed >= 160)
-  {
-    lcd.setCursor(6,1);
-    lcd.print("    Vivace");
-  }
-  else if(tempo_speed >= 132)
-  {
-    lcd.setCursor(6,1);
-    lcd.print("   Allegro");
-  }
-  else if(tempo_speed >= 108)
-  {
-    lcd.setCursor(6,1);
-    lcd.print("Allegretto");
-  }
-  else if(tempo_speed >= 88)
-  {
-    lcd.setCursor(6,1);
-    lcd.print("  Moderato");
-  }
-  else if(tempo_speed >= 69)
-  {
-    lcd.setCursor(6,1);
-    lcd.print(" Andantino");
-  }
-  else if(tempo_speed >= 66)
-  {
-    lcd.setCursor(6,1);
-    lcd.print("   Andante");
-  }
-  else if(tempo_speed >= 56)
-  {
-    lcd.setCursor(6,1);
-    lcd.print("    Adagio");
-  }
-  else if(tempo_speed >= 52)
-  {
-    lcd.setCursor(6,1);
-    lcd.print("     Lento");
-  }
-  else
-  {
-    lcd.setCursor(6,1);
-    lcd.print("     Largo");
-  }
-}//빠르기말 표시
-//////////박자패턴표시//////////
-void pattern4_4()
-{
-  switch(tempo_cnt%4) {
-   case 0: {
-  lcd.setCursor(0,1);
-  lcd.write(4); //"▶"
-  lcd.write(62);
-  lcd.write(62); 
-  lcd.write(62); //">"
-   } break;
-   case 1: {
-  lcd.setCursor(0,1);
-  lcd.write(4);
-  lcd.write(4); //"▶"
-  lcd.write(62);
-  lcd.write(62); //">"
-   } break;
-   case 2: {
-  lcd.setCursor(0,1);
-  lcd.write(4);
-  lcd.write(4);
-  lcd.write(4);  //"▶"
-  lcd.write(62); //">"
-  } break;
-  case 3: {
-  lcd.setCursor(0,1);
-  lcd.write(4);
-  lcd.write(4);
-  lcd.write(4);
-  lcd.write(4);  //"▶"
-  }
+ void setup() {
+   pinMode(speakerpin, OUTPUT);
+   pinMode(bpmControl, INPUT);
+   pinMode(button1, INPUT); //입력, 출력 설정
+   
+   Serial.begin(115200);
+   display.init();
+   display.flipScreenVertically();
+   display.setFont(ArialMT_Plain_16);
+   display.drawString(10, 10, "Hello World");
+   display.display();
  }
-}//4분의 4박자 패턴표시
-void pattern4_3()
-{
-  switch(tempo_cnt%3) {
-   case 0: {
-  lcd.setCursor(0,1);
-  lcd.write(4); //"▶"
-  lcd.write(62);
-  lcd.write(62); //">"
-  lcd.print(" ");
-   } break;
-   case 1: {
-  lcd.setCursor(0,1);
-  lcd.write(4);
-  lcd.write(4);  //"▶"
-  lcd.write(62); //">"
-  lcd.print(" ");
-  } break;
-  case 2: {
-  lcd.setCursor(0,1);
-  lcd.write(4);
-  lcd.write(4);
-  lcd.write(4);  //"▶"
-  lcd.print(" ");
-  } break;
- }
-}//4분의 3박자 패턴표시
-void pattern4_2()
-{
-  switch(tempo_cnt%2) {
-   case 0: {
-  lcd.setCursor(0,1);
-  lcd.write(4); //"▶"
-  lcd.write(62); //">"
-  lcd.print("  ");
-   } break;
-   case 1: {
-  lcd.setCursor(0,1);
-  lcd.write(4);
-  lcd.write(4);  //"▶"
-  lcd.print("  ");
-  } break;
- }
-}//4분의 2박자 패턴표시
 
-void setup() {
-  Serial.begin(115200);
-  display.init();
-  display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_16);
-  display.drawString(10, 10, "Hello World");
-  display.display();
-}
+ void loop() {
+   bpm = analogRead(bpmControl); //가변저항 값 저장
+   bpm = map(bpm, 0, 1023, 60, 180); //0부터 1023까지의 가변저항 값을 60부터 180으로 조절
+   bpm1 = 60/bpm;
+   bpm2 = bpm1*850; //가변저항 값에 따라 메트로놈 속도 변환
+   buttonstate1 = digitalRead(button1); //버튼 값 저장
+ 
+   if (count%rhythm == 1) { //첫 박마다 소리 출력
+     tone(speakerpin, first, 150);
+     delay(150);
+     noTone(speakerpin);
+     delay(bpm2);
+     count++; //count 값 증가
+   }
+   else { //첫박을 제외한 다른 박 소리 출력
+     tone(speakerpin, other, 150);
+     delay(150);
+     noTone(speakerpin);
+     delay(bpm2);
+     count++; //count 값 증가
+   }
 
+   if (buttonstate1 != prevstate1) { //버튼 디바이싱
+     if (buttonstate1 == 1) {
+       rhythmcount++;
+       if (rhythmcount > 3) {
+         rhythmcount = 1;
+       }
+     }
+     else {
+     }
+     prevstate1 = buttonstate1;
+   }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  Serial.println("a");
-  delay(500);
-}
+   switch(rhythmcount) { //버튼 누른 횟수에 따른 박자 계산(ex 4분의 4박자, 4분의 3박자...)
+   case 1 :
+   rhythm = 4;
+   break;
+
+   case 2 :
+   rhythm = 3;
+   break;
+
+   case 3 :
+   rhythm = 2;
+   break;
+   }
+
+   Serial.print("rhythm : "); //시리얼 모니터 출력
+   Serial.print(rhythm);
+   Serial.print("/4,  bpm : ");
+   Serial.println(bpm);
+   delay(100);
+
+ } 
