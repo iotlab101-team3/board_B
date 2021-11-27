@@ -5,22 +5,19 @@
 #define bpmControl_LSB 13
 #define buttonSW 2
 
-// const int pulseA = 12;
-// const int pulseB = 13;
-// const int pushSW = 2;
-
 SSD1306    display(0x3c, 4, 5, GEOMETRY_128_32);
 
 int first = 1319; //메트로놈 첫박 소리 높이
 int other = 1047; //메트로놈 다른 소리 높이
-float bpm; //가변저항 입력값 저장
-float bpm1;
-float bpm2; //가변저항에 따른 박자 속도 계산
+float bpm;
+// float bpm1;
+// float bpm2; //가변저항에 따른 박자 속도 계산
 int count = 1;
 int rhythm = 4; //박자 계산(ex 4분의 4박자, 4분의 3박자...)
-int buttonstate1 = 0;
-int prevstate1 = 0;
+int buttonstate = 0;
+int prevstate = 1;
 int rhythmcount = 1; //박자 조절 스위치
+
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
@@ -46,11 +43,6 @@ IRAM_ATTR void buttonClicked() {
 
 
 void setup() {
-  
-  /*  pinMode(speakerpin, OUTPUT);
-    pinMode(bpmControl, INPUT);
-    pinMode(button1, INPUT); //입력, 출력 설정 */
-
     Serial.begin(115200);
     display.init();
     display.flipScreenVertically();
@@ -67,29 +59,34 @@ void setup() {
 }
 
 void loop() {
-    bpm = analogRead(bpmControl); //가변저항 값 저장
-    bpm = map(bpm, 0, 1023, 60, 180); //0부터 1023까지의 가변저항 값을 60부터 180으로 조절
-    bpm1 = 60/bpm;
-    bpm2 = bpm1*850; //가변저항 값에 따라 메트로놈 속도 변환
-    buttonstate1 = digitalRead(buttonSW); //버튼 값 저장
+  if((encoderValue >= 60) && (encoderValue <= 180))
+  {
+    bpm = (60 / (float)encoderValue) * 850;
+    
+    /* bpm1 = 60 / (float)encoderValue;
+    bpm2 = bpm1 * 850; //가변저항 값에 따라 메트로놈 속도 변환
+    bpm2 = bpm1 * 1000; */
+
+    buttonstate = digitalRead(buttonSW); //버튼 값 저장
+    // Serial.println(buttonstate);
 
     if (count%rhythm == 1) { //첫 박마다 소리 출력
-        tone(speakerpin, first, 150);
-        delay(150);
-        noTone(speakerpin);
-        delay(bpm2);
-        count++; //count 값 증가
+      tone(speakerpin, first, 150);
+      delay(150);
+      noTone(speakerpin);
+      delay(bpm);
+      count++; //count 값 증가
     }
     else { //첫박을 제외한 다른 박 소리 출력
         tone(speakerpin, other, 150);
         delay(150);
         noTone(speakerpin);
-        delay(bpm2);
+        delay(bpm);
         count++; //count 값 증가
     }
 
-    if (buttonstate1 != prevstate1) { //버튼 디바이싱
-        if (buttonstate1 == 1) {
+    if (buttonstate != prevstate) { //버튼 디바이싱
+        if (buttonstate == 0) {
             rhythmcount++;
             if (rhythmcount > 3) {
                 rhythmcount = 1;
@@ -97,7 +94,7 @@ void loop() {
         }
         else {
         }
-        prevstate1 = buttonstate1;
+        prevstate != buttonstate;
     }
 
     switch(rhythmcount) { //버튼 누른 횟수에 따른 박자 계산(ex 4분의 4박자, 4분의 3박자...)
@@ -114,11 +111,27 @@ void loop() {
             break;
     }
 
-    Serial.print("rhythm : "); //시리얼 모니터 출력
-    Serial.print(rhythm);
-    Serial.print("/4,  bpm : ");
-    Serial.println(bpm);
-    Serial.println(encoderValue);
-    delay(100);
+    Serial.print("\nrhythm : "); //시리얼 모니터 출력
+    Serial.print(rhythm); 
+    Serial.println("/4");
+    Serial.print("bpm : ");
+    Serial.println(bpm); 
+    delay(50); 
 
+    display.init();
+    display.flipScreenVertically();
+    display.drawString(10, 10, String(rhythm) + "/4 BPM: " + String(bpm));
+    display.display();
+    delay(50); 
+  }
+  else
+  {
+    Serial.println("\nLoading..  NOW - " + String(encoderValue));
+
+    display.init();
+    display.flipScreenVertically();
+    display.drawString(10, 10, "Loading..");
+    display.display();  
+    delay(1000);
+  }
 } 
