@@ -38,7 +38,13 @@ IRAM_ATTR void handleRotary() {
 }
 
 IRAM_ATTR void buttonClicked() {
-  Serial.println("pushed");
+  //Serial.println("pushed");
+  /// 버튼이 눌릴 때 리듬 카운트 값을 바꿔주면 즉시 리듬의 변화를 줄 수 있음.
+  rhythmcount++;
+  if (rhythmcount > 3)
+  {
+    rhythmcount = 1;
+  }
 }
 
 
@@ -67,7 +73,8 @@ void loop() {
     bpm2 = bpm1 * 850; //가변저항 값에 따라 메트로놈 속도 변환
     bpm2 = bpm1 * 1000; */
 
-    buttonstate = digitalRead(buttonSW); //버튼 값 저장
+    /// 버튼 인터럽트에서 리듬 카운트를 함으로써 버튼 값 저장을 할 필요가 없어짐. 
+    //buttonstate = digitalRead(buttonSW); //버튼 값 저장
     // Serial.println(buttonstate);
 
     if (count%rhythm == 1) { //첫 박마다 소리 출력
@@ -85,27 +92,14 @@ void loop() {
         count++; //count 값 증가
     }
 
-    if (buttonstate != prevstate) { //버튼 디바이싱
-        if (buttonstate == 0) {
-            rhythmcount++;
-            if (rhythmcount > 3) {
-                rhythmcount = 1;
-            }
-        }
-        else {
-        }
-        prevstate != buttonstate;
-    }
-
+    /// 그래서 버튼 state 관련된 코드를 모두 지우고 switch문 만 남겨뒀음. 
     switch(rhythmcount) { //버튼 누른 횟수에 따른 박자 계산(ex 4분의 4박자, 4분의 3박자...)
         case 1 :
             rhythm = 4;
             break;
-
         case 2 :
             rhythm = 3;
             break;
-
         case 3 :
             rhythm = 2;
             break;
