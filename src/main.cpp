@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <SSD1306.h>
-#define speakerpin 5
+
+#define speakerpin 5 
 #define bpmControl_MSB 12
 #define bpmControl_LSB 13
 #define buttonSW 2
@@ -38,8 +39,6 @@ IRAM_ATTR void handleRotary() {
 }
 
 IRAM_ATTR void buttonClicked() {
-  //Serial.println("pushed");
-  /// 버튼이 눌릴 때 리듬 카운트 값을 바꿔주면 즉시 리듬의 변화를 줄 수 있음.
   rhythmcount++;
   if (rhythmcount > 3)
   {
@@ -56,6 +55,7 @@ void setup() {
     display.drawString(10, 10, "TEAM3");
     display.display();
 
+    pinMode(speakerpin, OUTPUT);
     pinMode(buttonSW, INPUT_PULLUP);
     pinMode(bpmControl_MSB, INPUT_PULLUP);
     pinMode(bpmControl_LSB, INPUT_PULLUP);
@@ -73,10 +73,6 @@ void loop() {
     bpm2 = bpm1 * 850; //가변저항 값에 따라 메트로놈 속도 변환
     bpm2 = bpm1 * 1000; */
 
-    /// 버튼 인터럽트에서 리듬 카운트를 함으로써 버튼 값 저장을 할 필요가 없어짐. 
-    //buttonstate = digitalRead(buttonSW); //버튼 값 저장
-    // Serial.println(buttonstate);
-
     if (count%rhythm == 1) { //첫 박마다 소리 출력
       tone(speakerpin, first, 150);
       delay(150);
@@ -92,8 +88,7 @@ void loop() {
         count++; //count 값 증가
     }
 
-    /// 그래서 버튼 state 관련된 코드를 모두 지우고 switch문 만 남겨뒀음. 
-    switch(rhythmcount) { //버튼 누른 횟수에 따른 박자 계산(ex 4분의 4박자, 4분의 3박자...)
+    switch(rhythmcount) { 
         case 1 :
             rhythm = 4;
             break;
@@ -105,7 +100,7 @@ void loop() {
             break;
     }
 
-    Serial.print("\nrhythm : "); //시리얼 모니터 출력
+    Serial.print("\nrhythm : "); 
     Serial.print(rhythm); 
     Serial.println("/4");
     Serial.print("bpm : ");
