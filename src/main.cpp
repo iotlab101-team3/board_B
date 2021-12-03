@@ -12,8 +12,6 @@ int first = 1319; //메트로놈 첫박 소리 높이
 int other = 1047; //메트로놈 다른 소리 높이
 float bpm;
 float bpm_delay;
-// float bpm1;
-// float bpm2; //가변저항에 따른 박자 속도 계산
 int count = 1;
 int rhythm = 4; //박자 계산(ex 4분의 4박자, 4분의 3박자...)
 int buttonstate = 0;
@@ -69,21 +67,22 @@ void loop() {
   {
     bpm = encoderValue;
     bpm_delay = (60 / (float)encoderValue) * 850;
-    
+
     if (count%rhythm == 1) { //첫 박마다 소리 출력
-      tone(speakerpin, first, 150);
+      tone(speakerpin, first, 30);
       delay(150);
       noTone(speakerpin);
-      delay(bpm_delay);
+      delay((int)bpm_delay);
       count++; //count 값 증가
     }
     else { //첫박을 제외한 다른 박 소리 출력
-        tone(speakerpin, other, 150);
+        tone(speakerpin, other, 30);
         delay(150);
         noTone(speakerpin);
-        delay(bpm_delay);
+        delay((int)bpm_delay);
         count++; //count 값 증가
     }
+
 
     switch(rhythmcount) { 
         case 1 :
