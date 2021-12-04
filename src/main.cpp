@@ -23,8 +23,8 @@ int rhythmcount = 1; //박자 조절 스위치
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid ="KT_GiGA_4C6F";
-const char*         password = "0ebe01ge28";
+const char*         ssid ="KT_GiGA_4C6F"; // 희정 : KT_GiGA_2G_1F1E
+const char*         password = "0ebe01ge28"; // 희정 : dcgb2ed245
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3_b/cmd/angle_b";
