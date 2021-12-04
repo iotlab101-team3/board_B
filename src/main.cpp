@@ -104,7 +104,7 @@ void setup() {
         Serial.println("Connecting to MQTT...");
         if (client.connect("team3_b")) {
             Serial.println("connected");  
-        } 
+        }
         else {
             Serial.print("failed with state "); Serial.println(client.state());
             delay(2000);
