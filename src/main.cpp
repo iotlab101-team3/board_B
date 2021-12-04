@@ -7,6 +7,7 @@
 #define bpmControl_MSB 12
 #define bpmControl_LSB 13
 #define buttonSW 2
+#define ModeSW 0
 
 SSD1306    display(0x3c, 4, 5, GEOMETRY_128_32);
 
@@ -19,18 +20,27 @@ int rhythm = 4; //박자 계산(ex 4분의 4박자, 4분의 3박자...)
 int buttonstate = 0;
 int prevstate = 1;
 int rhythmcount = 1; //박자 조절 스위치
+int checkMode = 0; // 체크모드 진입 카운트 스위치
+int check_flag = 0; //체크모드 on/off flag
 
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid ="KT_GiGA_4C6F"; // 희정 : KT_GiGA_2G_1F1E
-const char*         password = "0ebe01ge28"; // 희정 : dcgb2ed245
+const char*         ssid ="SK_WiFiGIGA4AB4";     // 희정 : KT_GiGA_2G_1F1E 연빈: SK_WiFiGIGA4AB4
+const char*         password = "2009024098";     // 희정 : dcgb2ed245      연빈: 2009024098
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3_b/cmd/angle_b";
 
 unsigned long       pubInterval = 5000;
 unsigned long       lastPublished = - pubInterval;
+
+const char 4_basicMode = []; // closeHH closeHH snare CloseHH closeHH closeHH snare CloseHH
+const char 3_basicMode = []; // closeHH closeHH snare
+const char 2_basicMode = []; // closeHH snare
+
+const char 
+
 
 WiFiClient          espClient;
 PubSubClient        client(espClient);
@@ -59,9 +69,20 @@ IRAM_ATTR void buttonClicked() {
   }
 }
 
+IRAM_ATTR void buttonClickedHard() {
+  checkMode++; 
+  if(checkMode == 1) check_flag = 1;
+  if (checkMode > 5)
+  {
+    checkMode = 0;
+    check_flag = 0;
+  }
+  // checkMode 0:off  1:on  2:기본비트  3:변형비트1  4: 변형비트2
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
     
-    int i;
+    unsigned int i=0;
     String Message = "";
     Serial.print("Message arrived [");
     Serial.print(topic);
@@ -84,9 +105,11 @@ void setup() {
 
     pinMode(speakerpin, OUTPUT);
     pinMode(buttonSW, INPUT_PULLUP);
+    pinMode(ModeSW, INPUT_PULLUP);
     pinMode(bpmControl_MSB, INPUT_PULLUP);
     pinMode(bpmControl_LSB, INPUT_PULLUP);
     attachInterrupt(buttonSW, buttonClicked, FALLING);
+    attachInterrupt(ModeSW, buttonClickedHard, FALLING);
     attachInterrupt(bpmControl_MSB, handleRotary, CHANGE);
     attachInterrupt(bpmControl_LSB, handleRotary, CHANGE);
 
@@ -160,7 +183,7 @@ void loop() {
     display.flipScreenVertically();
     display.drawString(10, 10, String(rhythm) + "/4 BPM: " + String(bpm));
     display.display();
-    delay(50); 
+    delay(50);
   }
   else
   {
