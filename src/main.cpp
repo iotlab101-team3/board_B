@@ -30,8 +30,8 @@ int j = 0;
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid = "SK_WiFiGIGA4AB4"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
-const char*         password = "2009024098"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
+const char*         ssid = "KT_GiGA_2G_1F1E"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
+const char*         password = "dcgb2ed245"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3_b/cmd/angle_b";
@@ -114,6 +114,7 @@ void setup() {
     display.drawString(10, 10, "TEAM3");
     display.display();
 
+    pinMode(RELAY, OUTPUT);
     pinMode(speakerpin, OUTPUT);
     pinMode(buttonSW, INPUT_PULLUP);
     pinMode(ModeSW, INPUT_PULLUP);
