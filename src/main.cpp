@@ -3,6 +3,7 @@
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 
+#define RELAY  15
 #define speakerpin 14
 #define bpmControl_MSB 12
 #define bpmControl_LSB 13
@@ -22,14 +23,15 @@ int prevstate = 1;
 int rhythmcount = 1; //박자 조절 스위치
 int checkMode = 0; // 체크모드 진입 카운트 스위치
 int check_flag = 0; //체크모드 on/off flag
+int bitCount = 0;
 
 int j = 0;
 
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid = "KT_GiGA_2G_1F1E"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
-const char*         password = "dcgb2ed245"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
+const char*         ssid = "SK_WiFiGIGA4AB4"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
+const char*         password = "2009024098"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3_b/cmd/angle_b";
@@ -37,11 +39,12 @@ const char* topic = "deviceid/team3_b/cmd/angle_b";
 unsigned long       pubInterval = 5000;
 unsigned long       lastPublished = - pubInterval;
 
-/*
-const char 4_basicMode = []; // closeHH closeHH snare CloseHH closeHH closeHH snare CloseHH
-const char 3_basicMode = []; // closeHH closeHH snare
-const char 2_basicMode = []; // closeHH snare
-*/
+int basicMode4[4] = {5,5,3,5}; // closeHH closeHH snare CloseHH closeHH closeHH snare CloseHH
+int basicMode3[3] = {5,5,3}; // closeHH closeHH snare
+int basicMode2[2] = {5,3}; // closeHH snare
+int currentBit[4] = {};
+int currentDrum = 0;
+
 
 WiFiClient      espClient;
 PubSubClient    client(espClient);
@@ -91,10 +94,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     while (i < length){
       Message += (char)payload [i++];
+      currentDrum += (int)payload [i++];
     } 
     Serial.println();
     Serial.println(Message);
 }
+
+void copyarray(int from[], int to[], int n)
+{
+    for(int i = 0; i < n; i++) to[i] = from[i];
+}
+
 
 void setup() {
     Serial.begin(115200);
@@ -142,6 +152,30 @@ void loop() {
   client.loop();
   if((encoderValue >= 60) && (encoderValue <= 180))
   {
+    switch(rhythmcount) { 
+        case 1 :
+            rhythm = 4;
+            if(check_flag == 1){
+              memset(currentBit, 0, sizeof(currentBit));
+              copyarray(basicMode4, currentBit, rhythm);
+            }
+            break;
+        case 2 :
+            rhythm = 3;
+            if(check_flag == 1){
+             memset(currentBit, 0, sizeof(currentBit));
+             copyarray(basicMode3, currentBit, rhythm);
+            }
+            break;
+        case 3 :
+            rhythm = 2;
+            if(check_flag == 1){
+             memset(currentBit, 0, sizeof(currentBit));
+             copyarray(basicMode2, currentBit, rhythm);
+            }
+            break;
+    }
+
     bpm = encoderValue;
     bpm_delay = (60 / (float)encoderValue) * 1000 - 50;
 
@@ -153,29 +187,34 @@ void loop() {
     if (count%rhythm == 1) { //첫 박마다 소리 출력
       tone(speakerpin, first);
       delay(50);
+      if(check_flag == 1){
+        if(currentBit[bitCount] != currentDrum) digitalWrite(RELAY, 1);
+        else digitalWrite(RELAY, 0);
+        Serial.println(currentBit[bitCount]);
+      }
       noTone(speakerpin);
       delay(bpm_delay);
+      digitalWrite(RELAY, 1);
       count++; //count 값 증가
+      bitCount++; 
+      if(bitCount >= rhythm) bitCount = 0;
     }
     else { //첫박을 제외한 다른 박 소리 출력
         tone(speakerpin, other);
         delay(50);
+        if(check_flag == 1){
+          if(currentBit[bitCount] != currentDrum) digitalWrite(RELAY, 1);
+          else digitalWrite(RELAY, 0);
+          Serial.println(currentBit[bitCount]);
+        }
         noTone(speakerpin);
         delay(bpm_delay);
+        digitalWrite(RELAY, 1);
         count++; //count 값 증가
+        bitCount++; 
     } 
 
-    switch(rhythmcount) { 
-        case 1 :
-            rhythm = 4;
-            break;
-        case 2 :
-            rhythm = 3;
-            break;
-        case 3 :
-            rhythm = 2;
-            break;
-    }
+    
 
     Serial.print("\nrhythm : "); 
     Serial.print(rhythm); 
