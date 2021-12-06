@@ -16,18 +16,18 @@ int other = 1047; //메트로놈 다른 소리 높이
 float bpm;
 float bpm_delay;
 int count = 1;
-int rhythm = 4; //박자 계산(ex 4분의 4박자, 4분의 3박자...)
+int rhythm = 4; //박자 계산
 int buttonstate = 0;
 int prevstate = 1;
 int rhythmcount = 1; //박자 조절 스위치
 int checkMode = 0; // 체크모드 진입 카운트 스위치
 int check_flag = 0; //체크모드 on/off flag
 
+int i = 0;
+
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid ="SK_WiFiGIGA4AB4";     // 희정 : KT_GiGA_2G_1F1E 연빈: SK_WiFiGIGA4AB4
-const char*         password = "2009024098";     // 희정 : dcgb2ed245      연빈: 2009024098
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3_b/cmd/angle_b";
@@ -142,23 +142,27 @@ void loop() {
   if((encoderValue >= 60) && (encoderValue <= 180))
   {
     bpm = encoderValue;
-    bpm_delay = (60 / (float)encoderValue) * 850;
+    bpm_delay = (60 / (float)encoderValue) * 1000 - 50;
+
+     for(i = 60; i < 181; i++)
+    {
+      bpm_delay -= 1;
+    }
 
     if (count%rhythm == 1) { //첫 박마다 소리 출력
-      tone(speakerpin, first, 30);
-      delay(150);
+      tone(speakerpin, first);
+      delay(50);
       noTone(speakerpin);
-      delay((int)bpm_delay);
+      delay(bpm_delay);
       count++; //count 값 증가
     }
     else { //첫박을 제외한 다른 박 소리 출력
-        tone(speakerpin, other, 30);
-        delay(150);
+        tone(speakerpin, other);
+        delay(50);
         noTone(speakerpin);
-        delay((int)bpm_delay);
+        delay(bpm_delay);
         count++; //count 값 증가
-    }
-
+    } 
 
     switch(rhythmcount) { 
         case 1 :
