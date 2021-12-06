@@ -22,16 +22,15 @@ int buttonstate = 0;
 int prevstate = 1;
 int rhythmcount = 1; //박자 조절 스위치
 int checkMode = 0; // 체크모드 진입 카운트 스위치
-int check_flag = 0; //체크모드 on/off flag
-int bitCount = 0;
+unsigned int bitCount = 0;
 
 int j = 0;
 
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid = "KT_GiGA_2G_1F1E"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
-const char*         password = "dcgb2ed245"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
+const char*         ssid = "SK_WiFiGIGA4AB4"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
+const char*         password = "2009024098"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3_b/cmd/angle_b";
@@ -42,7 +41,16 @@ unsigned long       lastPublished = - pubInterval;
 int basicMode4[4] = {5,5,3,5}; // closeHH closeHH snare CloseHH closeHH closeHH snare CloseHH
 int basicMode3[3] = {5,5,3}; // closeHH closeHH snare
 int basicMode2[2] = {5,3}; // closeHH snare
-int currentBit[4] = {};
+
+int fillInMode4[10] = {5,5,3,5,5,5,3,3,3,1};
+int fillInMode3[8] = {5,5,3,5,3,3,3,1};
+int fillInMode2[6] = {5,3,5,3,3,1};
+
+int dudududu4[8] = {3,3,1,1,2,2,6,6};
+int dudududu3[6] = {3,3,1,2,6,6};
+int dudududu2[4] = {3,1,2,6};
+
+int currentBit[16] = {};
 int currentDrum = 0;
 
 
@@ -75,13 +83,11 @@ IRAM_ATTR void buttonClicked() {
 
 IRAM_ATTR void buttonClickedHard() {
   checkMode++; 
-  if(checkMode == 1) check_flag = 1;
-  if (checkMode > 5)
+  if (checkMode > 4)
   {
     checkMode = 0;
-    check_flag = 0;
   }
-  // checkMode 0:off  1:on  2:기본비트  3:변형비트1  4: 변형비트2
+  // checkMode 0:off  1:기본비트  2:변형비트1  3: 변형비트2
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -98,6 +104,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } 
     Serial.println();
     Serial.println(Message);
+
+    if(checkMode==2 && checkMode==3){
+      if(currentBit[bitCount] != currentDrum) digitalWrite(RELAY, 1);
+      else digitalWrite(RELAY, 0);
+      Serial.println(currentBit[bitCount]);
+      bitCount++; 
+      if(checkMode==2){
+        if(bitCount >= rhythm + 6) bitCount = 0;
+      }
+      else if(bitCount >= rhythm + 4) bitCount = 0;
+      digitalWrite(RELAY, 0);
+    }
+
 }
 
 void copyarray(int from[], int to[], int n)
@@ -156,24 +175,24 @@ void loop() {
     switch(rhythmcount) { 
         case 1 :
             rhythm = 4;
-            if(check_flag == 1){
-              memset(currentBit, 0, sizeof(currentBit));
-              copyarray(basicMode4, currentBit, rhythm);
-            }
+            memset(currentBit, 0, sizeof(currentBit));
+            if(checkMode == 1) copyarray(basicMode4, currentBit, sizeof(basicMode4));
+            else if(checkMode == 2) copyarray(fillInMode4, currentBit, sizeof(fillInMode4));
+            else if(checkMode == 3) copyarray(dudududu4, currentBit, sizeof(dudududu4));
             break;
         case 2 :
             rhythm = 3;
-            if(check_flag == 1){
-             memset(currentBit, 0, sizeof(currentBit));
-             copyarray(basicMode3, currentBit, rhythm);
-            }
+            memset(currentBit, 0, sizeof(currentBit));
+            if(checkMode == 1) copyarray(basicMode3, currentBit, sizeof(basicMode3));
+            else if(checkMode == 2) copyarray(fillInMode3, currentBit, sizeof(fillInMode3));
+            else if(checkMode == 3) copyarray(dudududu3, currentBit, sizeof(dudududu3));
             break;
         case 3 :
             rhythm = 2;
-            if(check_flag == 1){
-             memset(currentBit, 0, sizeof(currentBit));
-             copyarray(basicMode2, currentBit, rhythm);
-            }
+            memset(currentBit, 0, sizeof(currentBit));
+            if(checkMode == 1) copyarray(basicMode2, currentBit, sizeof(basicMode2));
+            else if(checkMode == 2) copyarray(fillInMode2, currentBit,  sizeof(fillInMode2));
+            else if(checkMode == 3) copyarray(dudududu2, currentBit, sizeof(dudududu2));
             break;
     }
 
@@ -188,34 +207,32 @@ void loop() {
     if (count%rhythm == 1) { //첫 박마다 소리 출력
       tone(speakerpin, first);
       delay(50);
-      if(check_flag == 1){
+      if(checkMode == 1){
         if(currentBit[bitCount] != currentDrum) digitalWrite(RELAY, 1);
         else digitalWrite(RELAY, 0);
         Serial.println(currentBit[bitCount]);
+        bitCount++; 
+        if(bitCount >= rhythm) bitCount = 0;
       }
       noTone(speakerpin);
       delay(bpm_delay);
-      digitalWrite(RELAY, 1);
+      digitalWrite(RELAY, 0);
       count++; //count 값 증가
-      bitCount++; 
-      if(bitCount >= rhythm) bitCount = 0;
     }
     else { //첫박을 제외한 다른 박 소리 출력
         tone(speakerpin, other);
         delay(50);
-        if(check_flag == 1){
+        if(checkMode == 1){
           if(currentBit[bitCount] != currentDrum) digitalWrite(RELAY, 1);
           else digitalWrite(RELAY, 0);
           Serial.println(currentBit[bitCount]);
+          bitCount++; 
         }
         noTone(speakerpin);
         delay(bpm_delay);
-        digitalWrite(RELAY, 1);
+        digitalWrite(RELAY, 0);
         count++; //count 값 증가
-        bitCount++; 
     } 
-
-    
 
     Serial.print("\nrhythm : "); 
     Serial.print(rhythm); 
