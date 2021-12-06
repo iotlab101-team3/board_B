@@ -23,11 +23,13 @@ int rhythmcount = 1; //박자 조절 스위치
 int checkMode = 0; // 체크모드 진입 카운트 스위치
 int check_flag = 0; //체크모드 on/off flag
 
-int i = 0;
+int j = 0;
 
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
+const char*         ssid = "KT_GiGA_2G_1F1E"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
+const char*         password = "dcgb2ed245"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3_b/cmd/angle_b";
@@ -35,15 +37,14 @@ const char* topic = "deviceid/team3_b/cmd/angle_b";
 unsigned long       pubInterval = 5000;
 unsigned long       lastPublished = - pubInterval;
 
+/*
 const char 4_basicMode = []; // closeHH closeHH snare CloseHH closeHH closeHH snare CloseHH
 const char 3_basicMode = []; // closeHH closeHH snare
 const char 2_basicMode = []; // closeHH snare
+*/
 
-const char 
-
-
-WiFiClient          espClient;
-PubSubClient        client(espClient);
+WiFiClient      espClient;
+PubSubClient    client(espClient);
 
 IRAM_ATTR void handleRotary() {
   int MSB = digitalRead(bpmControl_MSB);
@@ -144,7 +145,7 @@ void loop() {
     bpm = encoderValue;
     bpm_delay = (60 / (float)encoderValue) * 1000 - 50;
 
-     for(i = 60; i < 181; i++)
+     for(j = 60; j < 181; j++)
     {
       bpm_delay -= 1;
     }
