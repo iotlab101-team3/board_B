@@ -153,7 +153,7 @@ void setup() {
 
 void loop() {
   client.loop();
-  if((encoderValue >= 60) && (encoderValue <= 180))
+  if((encoderValue >= 30) && (encoderValue <= 180))
   {
     switch(rhythmcount) { 
       case 1 :
