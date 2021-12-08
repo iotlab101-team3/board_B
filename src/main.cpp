@@ -41,20 +41,20 @@ const char* topic = "deviceid/team3/evt/angle";
 unsigned long       pubInterval = 5000;
 unsigned long       lastPublished = - pubInterval;
 
-int basicMode4[8] = {5,5,3,5,5,5,3,5}; // closeHH closeHH snare CloseHH closeHH closeHH snare CloseHH
-int basicMode3[6] = {5,5,3,5,5,3}; // closeHH closeHH snare
-int basicMode2[4] = {5,3,5,3}; // closeHH snare
+char basicMode4[8] = {'1','1','3','1','1','1','3','1'}; // 0x49 = 1 
+char basicMode3[6] = {'1','1','3','1','1','3'}; // closeHH closeHH snare
+char basicMode2[4] = {'1','3','1','3'}; // closeHH snare
 
-int modifyMode4[8] = {5,5,3,3,5,3,5,3};
-int modifyMode3[6] = {5,5,3,3,5,3};
-int modifyMode2[4] = {5,3,3,5};
+char modifyMode4[8] = {'1','1','3','3','1','3','1','3'};
+char modifyMode3[6] = {'1','1','3','3','1','3'};
+char modifyMode2[4] = {'1','3','3','1'};
 
-int dudududu4[8] = {3,3,1,1,2,2,6,6};
-int dudududu3[6] = {3,3,1,2,6,6};
-int dudududu2[4] = {3,1,2,6};
+char dudududu4[8] = {'3','3','4','4','5','5','6','6'};
+char dudududu3[6] = {'3','3','4','5','6','6'};
+char dudududu2[4] = {'3','4','5','6'};
 
-int currentBit[8] = {};
-int currentDrum = 0;
+char currentBit[8] = {};
+char currentDrum;
 
 
 IRAM_ATTR void handleRotary() {
@@ -81,7 +81,6 @@ IRAM_ATTR void buttonClicked() {
   {
     rhythmcount = 1;
     checkMode++;
-    //delay(200);
     Serial.printf("현재 모드: "); Serial.println(checkMode);
     if(checkMode == 1) check_flag = 1;
     else if(checkMode == 4) {
@@ -99,12 +98,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
     for(int i = 0; i < length; i++)
     {
         Serial.print((char)payload[i]);
-        currentDrum += (int)payload[i];
+        currentDrum = (char)payload[0];
     }
+   
     Serial.println();
+    Serial.print("현재 드럼 소리: "); Serial.println(currentDrum); 
 }
 
-void copyarray(int from[], int to[], int n)
+void copyarray(char from[], char to[], int n)
 {
   for(int i = 0; i < n; i++) to[i] = from[i];
 }
@@ -196,6 +197,7 @@ void loop() {
       if(check_flag == 1){
         if(currentBit[bitCount] != currentDrum) digitalWrite(RELAY, 1);
         else digitalWrite(RELAY, 0);
+        currentDrum = 0;
         Serial.println(currentBit[bitCount]);
         bitCount++; 
       }
@@ -210,6 +212,7 @@ void loop() {
       if(check_flag == 1){
         if(currentBit[bitCount] != currentDrum) digitalWrite(RELAY, 1);
         else digitalWrite(RELAY, 0);
+        currentDrum = 0;
         Serial.println(currentBit[bitCount]);
         bitCount++; 
         if(bitCount >= rhythm*2) bitCount = 0;
