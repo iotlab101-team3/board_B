@@ -32,11 +32,11 @@ int j = 0;
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid = "SK_WiFiGIGA4AB4"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
-const char*         password = "2009024098"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
+const char*         ssid = "Gogle"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
+const char*         password = "20010228"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
 const char*         mqttServer = "3.84.34.84";
 const int           mqttPort = 1883;
-const char* topic = "deviceid/team3_b/cmd/angle_b";
+const char* topic = "deviceid/team3/evt/angle";
 
 unsigned long       pubInterval = 5000;
 unsigned long       lastPublished = - pubInterval;
@@ -92,18 +92,16 @@ IRAM_ATTR void buttonClicked() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  unsigned int i=0;
-  String Message = "";
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-
-  while (i < length){
-    Message += (char)payload [i++];
-    currentDrum += (int)payload [i++];
-  } 
-  Serial.println();
-  Serial.println(Message);
+    
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    for(int i = 0; i < length; i++)
+    {
+        Serial.print((char)payload[i]);
+        currentDrum += (int)payload[i];
+    }
+    Serial.println();
 }
 
 void copyarray(int from[], int to[], int n)
@@ -243,6 +241,6 @@ void loop() {
     display.flipScreenVertically();
     display.drawString(10, 10, "Loading..");
     display.display();  
-    delay(1000);
+    delay(800);
   }
 } 
