@@ -41,9 +41,9 @@ const char* topic = "deviceid/team3/evt/angle";
 unsigned long       pubInterval = 5000;
 unsigned long       lastPublished = - pubInterval;
 
-char basicMode4[8] = {'1','1','3','1','1','1','3','1'}; // 0x49 = 1 
-char basicMode3[6] = {'1','1','3','1','1','3'}; // closeHH closeHH snare
-char basicMode2[4] = {'1','3','1','3'}; // closeHH snare
+char basicMode4[8] = {'7','7','7','7','7','7','7','7'}; // 0x49 = 1 
+char basicMode3[6] = {'7','7','7','7','7','7'}; // closeHH closeHH snare
+char basicMode2[4] = {'7','7','7','7'}; // closeHH snare
 
 char modifyMode4[8] = {'1','1','3','3','1','3','1','3'};
 char modifyMode3[6] = {'1','1','3','3','1','3'};
