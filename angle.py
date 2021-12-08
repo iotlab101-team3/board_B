@@ -10,19 +10,19 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     print(msg.topic+" "+str(msg.payload.decode('UTF-8')))
     if int(msg.payload.decode('UTF-8')) == 1:
-        client.publish("deviceid/team3_b/cmd/angle_b", "1")
+        client.subscribe(topic)
     elif int(msg.payload.decode('UTF-8')) == 2:
-        client.publish("deviceid/team3_b/cmd/angle_b", "2")
+        client.subscribe(topic)
     elif int(msg.payload.decode('UTF-8')) == 3:
-        client.publish("deviceid/team3_b/cmd/angle_b", "3")
+        client.subscribe(topic)
     elif int(msg.payload.decode('UTF-8')) == 4:
-        client.publish("deviceid/team3_b/cmd/angle_b", "4")
+        client.subscribe(topic)
     elif int(msg.payload.decode('UTF-8')) == 5:
-        client.publish("deviceid/team3_b/cmd/angle_b", "5")
+        client.subscribe(topic)
     elif int(msg.payload.decode('UTF-8')) == 6:
-        client.publish("deviceid/team3_b/cmd/angle_b", "6")
+        client.subscribe(topic)
     elif int(msg.payload.decode('UTF-8')) == 0:
-        client.publish("deviceid/team3_b/cmd/angle_b", "0")
+        client.subscribe(topic)
     
 
 client = mqtt.Client()
