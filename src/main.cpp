@@ -153,7 +153,7 @@ void setup() {
 
 void loop() {
   client.loop();
-  if((encoderValue >= 60) && (encoderValue <= 180))
+  if((encoderValue >= 30) && (encoderValue <= 180))
   {
     switch(rhythmcount) { 
       case 1 :
@@ -187,7 +187,7 @@ void loop() {
     bpm = encoderValue;
     bpm_delay = (60 / (float)encoderValue) * 1000 - 50;
 
-    for(j = 60; j < 181; j++)
+    for(j = 30; j < 181; j++)
     {
       bpm_delay -= 1;
     }
