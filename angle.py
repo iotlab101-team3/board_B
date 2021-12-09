@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 
 topic = "deviceid/team3/evt/angle"
-server = "3.84.34.84"
+server = "54.81.240.10"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with RC : " + str(rc))
