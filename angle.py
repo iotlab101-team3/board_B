@@ -21,8 +21,6 @@ def on_message(client, userdata, msg):
         client.subscribe(topic)
     elif int(msg.payload.decode('UTF-8')) == 6:
         client.subscribe(topic)
-    elif int(msg.payload.decode('UTF-8')) == 0:
-        client.subscribe(topic)
     
 
 client = mqtt.Client()
