@@ -32,9 +32,9 @@ int j = 0;
 volatile int lastEncoder = 0;
 volatile long encoderValue = 0;
 
-const char*         ssid = "Gogle"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
-const char*         password = "20010228"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
-const char*         mqttServer = "3.84.34.84";
+const char*         ssid = "KT_GiGA_2G_1F1E"; //"SK_WiFiGIGA4AB4";  희정 : KT_GiGA_2G_1F1E  연빈: SK_WiFiGIGA4AB4
+const char*         password = "dcgb2ed245"; // "2009024098"; 희정 : dcgb2ed245       연빈: 2009024098
+const char*         mqttServer = "54.81.240.10";
 const int           mqttPort = 1883;
 const char* topic = "deviceid/team3/evt/angle";
 
